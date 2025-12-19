@@ -1,26 +1,20 @@
-// List of prohibited words - expand as needed
-const PROHIBITED_WORDS = [
-  // Profanity
-  'fuck', 'shit', 'damn', 'bitch', 'asshole', 'bastard', 'cunt', 'dick', 'pussy', 'cock',
-  'motherfucker', 'fucker', 'bullshit', 'crap', 'piss', 'dumbass', 'jackass',
+// Import the profanity lists from the external files
+import enProfanityListRaw from '../../profanity-list-main/profanity-list-main/list/en.txt?raw';
+import filProfanityListRaw from '../../profanity-list-main/profanity-list-main/list/fil.txt?raw';
 
-  // Hate speech and slurs
-  'nigger', 'nigga', 'faggot', 'fag', 'queer', 'homo', 'chink', 'gook', 'spic', 'wetback',
-  'kike', 'heeb', 'raghead', 'towelhead', 'sandnigger', 'coon', 'porchmonkey',
+// Process the raw text into arrays of prohibited words
+const EN_PROHIBITED_WORDS = enProfanityListRaw
+  .split('\n')
+  .map(word => word.trim())
+  .filter(word => word.length > 0);
 
-  // Sexual content
-  'sex', 'porn', 'naked', 'nude', 'tits', 'boobs', 'dick', 'cock', 'pussy', 'ass',
-  'blowjob', 'handjob', 'cum', 'sperm', 'orgasm', 'masturbate', 'jerkoff',
+const FIL_PROHIBITED_WORDS = filProfanityListRaw
+  .split('\n')
+  .map(word => word.trim())
+  .filter(word => word.length > 0);
 
-  // Violence and threats
-  'kill', 'murder', 'rape', 'beat', 'stab', 'shoot', 'bomb', 'terrorist', 'suicide',
-
-  // Drugs
-  'cocaine', 'heroin', 'meth', 'weed', 'marijuana', 'crack', 'ecstasy', 'lsd',
-
-  // Other inappropriate content
-  'pedophile', 'childporn', 'incest', 'bestiality', 'necrophilia'
-];
+// Combine all prohibited words
+const PROHIBITED_WORDS = [...EN_PROHIBITED_WORDS, ...FIL_PROHIBITED_WORDS];
 
 // Create regex patterns for case-insensitive matching
 const PROFANITY_PATTERNS = PROHIBITED_WORDS.map(word => {

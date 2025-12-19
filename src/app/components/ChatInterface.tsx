@@ -21,7 +21,7 @@ interface ChatInterfaceProps {
 export const ChatInterface = memo(function ChatInterface({ socket, room, onLeaveChat }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [countdown, setCountdown] = useState(15);
+  const [countdown, setCountdown] = useState(60);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
@@ -67,7 +67,7 @@ export const ChatInterface = memo(function ChatInterface({ socket, room, onLeave
       });
 
       socket.on('time_extended', () => {
-        setCountdown(15);
+        setCountdown(prev => prev + 60);
         setNotification('Your partner extended the time!');
         setTimeout(() => setNotification(null), 3000);
       });
@@ -128,7 +128,7 @@ export const ChatInterface = memo(function ChatInterface({ socket, room, onLeave
 
   // Handle staying connected
   const handleStayConnected = useCallback(() => {
-    setCountdown(15);
+    setCountdown(prev => prev + 60);
     if (socket && room) {
       socket.emit('extend_time', { room });
     }
