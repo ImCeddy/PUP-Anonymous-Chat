@@ -262,7 +262,7 @@ export const ChatInterface = memo(function ChatInterface({ socket, room, onLeave
           </div>
         </div>
       )}
-      <div className="flex-1 overflow-y-auto px-4 py-4 md:py-6 pb-32 md:pb-40">
+      <div className="flex-1 overflow-y-auto px-4 py-4 md:py-6 pb-40 md:pb-48">
         <div className="max-w-4xl mx-auto space-y-3 md:space-y-4">
           {/* Connection message */}
           <div className="flex items-center justify-center gap-2 text-xs md:text-sm text-gray-500 mb-4 md:mb-6">
