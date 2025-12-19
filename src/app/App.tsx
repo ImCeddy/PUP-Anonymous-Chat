@@ -15,7 +15,7 @@ export default function App() {
 
   useEffect(() => {
     setIsConnecting(true);
-    const newSocket = io('http://localhost:3001', {
+    const newSocket = io('https://pup-anonymous-chat-production.up.railway.app', {
       transports: ['websocket', 'polling'],
       timeout: 20000,
       reconnection: true,
