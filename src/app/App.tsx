@@ -106,7 +106,7 @@ export default function App() {
         <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-sm">
           <div
             className={`w-2 h-2 rounded-full ${
-              socket?.connected ? 'bg-green-500' : 'bg-red-500'
+              socket?.connected ? 'bg-green-500' : isConnecting ? 'bg-yellow-500 animate-pulse' : 'bg-red-500'
             }`}
           />
           <span className="text-xs text-gray-600">
@@ -124,14 +124,33 @@ export default function App() {
         </div>
       )}
 
-      {appState === 'landing' && (
+      {/* Loading Screen */}
+      {isConnecting && !socket && (
+        <div className="w-full h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Connecting to server...</h2>
+            <p className="text-gray-500">Please wait while we establish connection</p>
+          </div>
+        </div>
+      )}
+
+      {/* Main App Content */}
+      {!isConnecting || socket ? (
+        <>
+          {appState === 'landing' && (
+            <LandingPage onStartSearch={handleStartSearch} />
+          )}
+          {appState === 'searching' && (
+            <SearchingScreen />
+          )}
+          {appState === 'chatting' && (
+            <ChatInterface socket={socket} room={room} onLeaveChat={handleLeaveChat} />
+          )}
+        </>
+      ) : (
+        /* Fallback for when socket is not available but not connecting */
         <LandingPage onStartSearch={handleStartSearch} />
-      )}
-      {appState === 'searching' && (
-        <SearchingScreen />
-      )}
-      {appState === 'chatting' && (
-        <ChatInterface socket={socket} room={room} onLeaveChat={handleLeaveChat} />
       )}
     </div>
   );
