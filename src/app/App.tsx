@@ -14,50 +14,69 @@ export default function App() {
   const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
-    setIsConnecting(true);
-    const newSocket = io('https://pup-anonymous-chat-production.up.railway.app', {
-      transports: ['websocket', 'polling'],
-      timeout: 20000,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
-
-    newSocket.on('connect', () => {
-      console.log('Connected to server');
-      setConnectionError(null);
-      setIsConnecting(false);
-    });
-
-    newSocket.on('connect_error', (error) => {
-      console.error('Connection error:', error);
-      setConnectionError('Failed to connect to server. Please check your connection.');
-      setIsConnecting(false);
-    });
-
-    newSocket.on('disconnect', (reason) => {
-      console.log('Disconnected:', reason);
-      if (reason === 'io server disconnect') {
-        // Server disconnected, try to reconnect
-        newSocket.connect();
+    // Add a timeout to ensure we don't get stuck in connecting state
+    const connectionTimeout = setTimeout(() => {
+      if (isConnecting) {
+        console.warn('Connection timeout - showing app anyway');
+        setIsConnecting(false);
+        setConnectionError('Connection timeout. You can still use the app, but real-time features may not work.');
       }
-    });
+    }, 10000); // 10 second timeout
 
-    newSocket.on('reconnect', (attemptNumber) => {
-      console.log('Reconnected after', attemptNumber, 'attempts');
-      setConnectionError(null);
-    });
+    setIsConnecting(true);
+    try {
+      const newSocket = io('https://pup-anonymous-chat-production.up.railway.app', {
+        transports: ['websocket', 'polling'],
+        timeout: 20000,
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      });
 
-    newSocket.on('reconnect_error', (error) => {
-      console.error('Reconnection failed:', error);
-      setConnectionError('Lost connection. Trying to reconnect...');
-    });
+      newSocket.on('connect', () => {
+        console.log('Connected to server');
+        clearTimeout(connectionTimeout);
+        setConnectionError(null);
+        setIsConnecting(false);
+      });
 
-    setSocket(newSocket);
+      newSocket.on('connect_error', (error) => {
+        console.error('Connection error:', error);
+        clearTimeout(connectionTimeout);
+        setConnectionError('Failed to connect to server. You can still browse the app, but chat features may not work.');
+        setIsConnecting(false);
+      });
 
-    return () => {
-      newSocket.close();
-    };
+      newSocket.on('disconnect', (reason) => {
+        console.log('Disconnected:', reason);
+        if (reason === 'io server disconnect') {
+          // Server disconnected, try to reconnect
+          newSocket.connect();
+        }
+      });
+
+      newSocket.on('reconnect', (attemptNumber) => {
+        console.log('Reconnected after', attemptNumber, 'attempts');
+        setConnectionError(null);
+      });
+
+      newSocket.on('reconnect_error', (error) => {
+        console.error('Reconnection failed:', error);
+        setConnectionError('Lost connection. Trying to reconnect...');
+      });
+
+      setSocket(newSocket);
+
+      return () => {
+        clearTimeout(connectionTimeout);
+        newSocket.close();
+      };
+    } catch (error) {
+      console.error('Socket initialization error:', error);
+      clearTimeout(connectionTimeout);
+      setConnectionError('Failed to initialize connection. You can still browse the app.');
+      setIsConnecting(false);
+    }
   }, []);
 
   const handleStartSearch = () => {
