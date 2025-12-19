@@ -1,0 +1,138 @@
+import { useState, useEffect } from 'react';
+import io from 'socket.io-client';
+import { LandingPage } from './components/LandingPage';
+import { SearchingScreen } from './components/SearchingScreen';
+import { ChatInterface } from './components/ChatInterface';
+
+type AppState = 'landing' | 'searching' | 'chatting';
+
+export default function App() {
+  const [appState, setAppState] = useState<AppState>('landing');
+  const [socket, setSocket] = useState<any>(null);
+  const [room, setRoom] = useState<string>('');
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  useEffect(() => {
+    setIsConnecting(true);
+    const newSocket = io('http://localhost:3001', {
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+
+    newSocket.on('connect', () => {
+      console.log('Connected to server');
+      setConnectionError(null);
+      setIsConnecting(false);
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.error('Connection error:', error);
+      setConnectionError('Failed to connect to server. Please check your connection.');
+      setIsConnecting(false);
+    });
+
+    newSocket.on('disconnect', (reason) => {
+      console.log('Disconnected:', reason);
+      if (reason === 'io server disconnect') {
+        // Server disconnected, try to reconnect
+        newSocket.connect();
+      }
+    });
+
+    newSocket.on('reconnect', (attemptNumber) => {
+      console.log('Reconnected after', attemptNumber, 'attempts');
+      setConnectionError(null);
+    });
+
+    newSocket.on('reconnect_error', (error) => {
+      console.error('Reconnection failed:', error);
+      setConnectionError('Lost connection. Trying to reconnect...');
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.close();
+    };
+  }, []);
+
+  const handleStartSearch = () => {
+    if (!socket || !socket.connected) {
+      setConnectionError('Not connected to server. Please wait for reconnection.');
+      return;
+    }
+
+    setAppState('searching');
+    setConnectionError(null);
+
+    if (socket) {
+      socket.emit('search');
+      socket.on('matched', (data: { room: string }) => {
+        setRoom(data.room);
+        setAppState('chatting');
+      });
+
+      // Handle search timeout
+      const searchTimeout = setTimeout(() => {
+        if (appState === 'searching') {
+          setConnectionError('No partners found. Please try again.');
+          setAppState('landing');
+        }
+      }, 30000); // 30 second timeout
+
+      // Clean up timeout when matched
+      socket.once('matched', () => {
+        clearTimeout(searchTimeout);
+      });
+    }
+  };
+
+  const handleLeaveChat = () => {
+    if (socket && room) {
+      socket.emit('leave', { room });
+    }
+    setAppState('landing');
+    setRoom('');
+  };
+
+  return (
+    <div className="w-full h-screen overflow-hidden">
+      {/* Connection Status */}
+      <div className="fixed top-4 right-4 z-50">
+        <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-sm">
+          <div
+            className={`w-2 h-2 rounded-full ${
+              socket?.connected ? 'bg-green-500' : 'bg-red-500'
+            }`}
+          />
+          <span className="text-xs text-gray-600">
+            {isConnecting ? 'Connecting...' : socket?.connected ? 'Connected' : 'Disconnected'}
+          </span>
+        </div>
+      </div>
+
+      {/* Error Message */}
+      {connectionError && (
+        <div className="fixed top-16 right-4 z-50 max-w-sm">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 shadow-sm">
+            <p className="text-sm text-red-800">{connectionError}</p>
+          </div>
+        </div>
+      )}
+
+      {appState === 'landing' && (
+        <LandingPage onStartSearch={handleStartSearch} />
+      )}
+      {appState === 'searching' && (
+        <SearchingScreen />
+      )}
+      {appState === 'chatting' && (
+        <ChatInterface socket={socket} room={room} onLeaveChat={handleLeaveChat} />
+      )}
+    </div>
+  );
+}
