@@ -28,7 +28,7 @@ export function LandingPage({ onStartSearch }: LandingPageProps) {
     <div className="min-h-screen w-full flex flex-col bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50">
       <Header />
       
-      <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-h-[60vh]">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-h-[70vh]">
         {/* Decorative paw prints */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-5">
           <div className="absolute top-20 left-20 text-6xl md:text-9xl">🐾</div>
@@ -88,7 +88,7 @@ export function LandingPage({ onStartSearch }: LandingPageProps) {
             Connect with fellow students anonymously
           </p>
         </div>
-      </div>
+      </main>
       
       <Footer />
     </div>
