@@ -1,8 +1,6 @@
 
 # PUP Anonymous Chat Website
 
-This is a code bundle for PUP Anonymous Chat Website. The original project is available at https://www.figma.com/design/0owXQX2EaAdm922LqnzDhU/PUP-Anonymous-Chat-Website.
-
 ## 🚀 Quick Start
 
 ```bash
